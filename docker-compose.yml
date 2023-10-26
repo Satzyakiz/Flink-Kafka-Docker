@@ -1,0 +1,156 @@
+---
+version: '3'
+services:
+
+  ##################################################################################################
+  # Kafka
+  ##################################################################################################
+  kafka-zookeeper:
+    image: confluentinc/cp-zookeeper:${KAFKA_VERSION_TAG}
+    container_name: st-cep-kafka-zookeeper
+    networks:
+      - st-cep-network
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka-broker:
+    image: confluentinc/cp-kafka:${KAFKA_VERSION_TAG}
+    container_name: kafka-broker
+    networks:
+      - st-cep-network
+    ports:
+    # To learn about configuring Kafka for access across networks see
+    # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - kafka-zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'st-cep-kafka-zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka-broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    expose:
+      - "9092"
+      - "29092"
+
+  kafka-kafdrop:
+    image: obsidiandynamics/kafdrop
+    networks:
+      - st-cep-network
+    depends_on:
+      - kafka-zookeeper
+      - kafka-broker
+    ports:
+      - 19000:9000
+    environment:
+      KAFKA_BROKERCONNECT: ${KAFKA_SERVER:-kafka-broker:29092}
+
+  ##################################################################################################
+  # Flink
+  ##################################################################################################
+  flink-jobmanager:
+    image: flink:${FLINK_VERSION_TAG}
+    container_name: st-cep-flink-jobmanager
+    networks:
+      - st-cep-network
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: st-cep-flink-jobmanager
+        
+
+  flink-taskmanager:
+    image: flink:${FLINK_VERSION_TAG}
+    networks:
+      - st-cep-network
+    depends_on:
+      - flink-jobmanager
+    command: taskmanager
+    # scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: st-cep-flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+
+  ##################################################################################################
+  # Java based maven development environment
+  ##################################################################################################
+
+  ##################################################################################################
+  # PRODUCER
+  ##################################################################################################
+  data-producer:
+    build:
+      context: ./kafka
+      dockerfile: Dockerfile
+    container_name: data-producer
+    networks:
+      - st-cep-network
+    command: python3 /code/kafka_producer.py
+    tty: true
+    depends_on:
+      - kafka-broker
+    environment:
+      KAFKA_SERVER: ${KAFKA_SERVER:-kafka-broker:29092}
+      KAFKA_TOPIC: ${KAFKA_SOURCE_TOPIC}
+    volumes:
+      - ${HOST_DATA_DIR}/smallerDataset.csv:/data/smallerDataset.csv:ro
+      - ./kafka_producer.py:/code/kafka_producer.py
+
+
+  ##################################################################################################
+  # CEP
+  ##################################################################################################
+  data-cep-processor:
+    build:
+      context: ./flink
+      dockerfile: Dockerfile
+    container_name: data-cep-processor
+    networks:
+      - st-cep-network
+    command: java -jar /code/flink-playground/target/flink-playground-0.1.jar
+    tty: true
+    depends_on:
+      - kafka-broker
+      - flink-jobmanager
+      - flink-taskmanager
+    environment:
+      KAFKA_SERVER: ${KAFKA_SERVER:-kafka-broker:29092}
+      KAFKA_SOURCE_TOPIC: ${KAFKA_SOURCE_TOPIC}
+      KAFKA_SINK_TOPIC: ${KAFKA_SINK_TOPIC}
+    volumes:
+      - ./flink/flink-playground:/code/flink
+
+  ##################################################################################################
+  # Consumer
+  ##################################################################################################
+  data-consumer:
+    build:
+      context: ./kafka
+      dockerfile: Dockerfile
+    container_name: data-consumer
+    networks:
+      - st-cep-network
+    command: python3 /code/kafka_consumer.py
+    tty: true
+    depends_on:
+      - kafka-broker
+    environment:
+      KAFKA_SERVER: ${KAFKA_SERVER:-kafka-broker:29092}
+      KAFKA_TOPIC: ${KAFKA_SINK_TOPIC}
+    volumes:
+      - ./kafka_consumer.py:/code/kafka_consumer.py
+
+
+networks:
+  st-cep-network:
+    driver: bridge

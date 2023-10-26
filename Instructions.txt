@@ -1,0 +1,23 @@
+Running KAFKA locally -->
+    1) brew install kafka
+    2) zookeeper-server-start /opt/homebrew/etc/kafka/zookeeper.properties (Terminal 1)
+    3) kafka-server-start /opt/homebrew/etc/kafka/server.properties (Terminal 2)
+    4) Create a KAFKA topic -
+            kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic processed-data
+    5) kafka-console-producer --broker-list localhost:9092 --topic foobar (Terminal 3)
+    6) kafka-console-consumer --bootstrap-server localhost:9092 --topic foobar --from-beginning (Terminal 4)
+
+List present KAFKA topics -->
+    kafka-topics \
+    --bootstrap-server localhost:9092 \
+    --list
+
+
+Python virtual environment -->
+    1) python3 -m venv venv (Creates a virtual env)
+    2) source venv/bin/activate (Enables a virtual environment)
+
+
+
+
+KAFKA_SERVER=kafka-broker:29092
