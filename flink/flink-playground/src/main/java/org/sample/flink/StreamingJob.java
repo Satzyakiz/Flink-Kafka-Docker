@@ -33,7 +33,6 @@ public class StreamingJob {
         KafkaSource<String> source = KafkaSource.<String>builder()
                 .setBootstrapServers(kafkaServer)
                 .setTopics(sourceTopic)
-                .setGroupId("my-group")
                 .setStartingOffsets(OffsetsInitializer.earliest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();

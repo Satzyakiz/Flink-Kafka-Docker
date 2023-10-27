@@ -23,5 +23,5 @@ docker compose --env-file config.env up -d --build
 
 # # stop kafka broker
 # docker-compose down
-# docker stop $(docker ps -q)
+# docker stop $(docker ps -q) && docker rm $(docker ps -aq)
 # docker rm $(docker ps -aq)

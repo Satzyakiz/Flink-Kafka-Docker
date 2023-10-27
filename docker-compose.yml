@@ -23,7 +23,6 @@ services:
     # To learn about configuring Kafka for access across networks see
     # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
       - "9092:9092"
-      - "29092:29092"
     depends_on:
       - kafka-zookeeper
     environment:
@@ -36,7 +35,6 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     expose:
       - "9092"
-      - "29092"
 
   kafka-kafdrop:
     image: obsidiandynamics/kafdrop
@@ -117,7 +115,8 @@ services:
     container_name: data-cep-processor
     networks:
       - st-cep-network
-    command: java -jar /code/flink-playground/target/flink-playground-0.1.jar
+    # command: java -jar /code/flink-playground/target/flink-playground-0.1.jar
+    command: java -jar /code/quickstart/target/quickstart-0.1.jar
     tty: true
     depends_on:
       - kafka-broker

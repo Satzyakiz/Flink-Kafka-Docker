@@ -54,6 +54,11 @@ under the License.
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-kafka</artifactId>
+			<version>1.19-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-walkthrough-common</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
@@ -103,11 +108,11 @@ under the License.
 			<!-- <scope>runtime</scope> -->
 		</dependency>
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-shaded-guava</artifactId>
 			<version>31.1-jre-17.0</version>
-		</dependency>
+		</dependency> -->
 
 	</dependencies>
 
@@ -141,7 +146,7 @@ under the License.
 						<configuration>
 							<artifactSet>
 								<excludes>
-									<exclude>org.apache.flink:flink-shaded-force-shading</exclude>
+									<!-- <exclude>org.apache.flink:flink-shaded-force-shading</exclude> -->
 									<exclude>com.google.code.findbugs:jsr305</exclude>
 									<!-- <exclude>org.slf4j:*</exclude> -->
 									<!-- <exclude>org.apache.logging.log4j:*</exclude> -->

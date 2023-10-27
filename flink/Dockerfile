@@ -3,6 +3,7 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /code
 
 COPY flink-playground /code/flink-playground
+COPY quickstart /code/quickstart
 # RUN javac CEP_Processor.java
 
 
