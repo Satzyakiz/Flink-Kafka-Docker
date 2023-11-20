@@ -92,40 +92,35 @@ public class DataStreamJob {
                 .build();
         logger.info("Flink connected to consumer");
 
-        DataStream<String> stringStream = stream.map(data -> BasicEvent.fromString(data))
-        .map(data -> {
-                logger.info("BRRRRAAAATTTTT");
-                return data.getData();
+        DataStream<BasicEvent> eventStream = stream.map(data -> BasicEvent.fromString(data));
+
+        Pattern<BasicEvent, ?> pattern = Pattern.<BasicEvent>begin("start")
+        .where(SimpleCondition.of(event -> {
+                return event.getValueRaw() > 440;
+            }))
+        .followedBy("end")
+        .where(SimpleCondition.of(event -> {
+                return event.getValueRaw() < 450;
+            }));
+
+        PatternStream<BasicEvent> patternStream = CEP.pattern(eventStream, pattern).inProcessingTime();
+
+        DataStream<String> result = patternStream.process(
+        new PatternProcessFunction<BasicEvent, String>() {
+                @Override
+                public void processMatch(Map<String, List<BasicEvent>> pattern,
+                                        Context ctx,
+                                        Collector<String> out) throws Exception {
+                        List<BasicEvent> events = pattern.get("end");
+                        for (BasicEvent event : events) {
+                                logger.info("Adding event " + event.toString());
+                                out.collect(event.toString());
+                        }
+                }
         });
 
-        // Pattern<BasicEvent, ?> pattern = Pattern.<BasicEvent>begin("start")
-        // .where(new SimpleCondition<BasicEvent>() {
-        //     @Override
-        //     public boolean filter(BasicEvent event) {
-        //         logger.info("Trying to convert data");
-        //         return event.getValue_raw() > 420;
-        //     }
-        // });
-
-        // PatternStream<BasicEvent> patternStream = CEP.pattern(eventStream, pattern);
-
-        // DataStream<String> result = patternStream.process(
-        // new PatternProcessFunction<BasicEvent, String>() {
-        //         @Override
-        //         public void processMatch(Map<String, List<BasicEvent>> pattern,
-        //                                 Context ctx,
-        //                                 Collector<String> out) throws Exception {
-        //                 logger.info("Trying to convert data");
-        //                 List<BasicEvent> startEvents = pattern.get("start");
-        //                 for (BasicEvent event : startEvents) {
-        //                         logger.info("Inside event");
-        //                         out.collect("event.toString()");
-        //                 }
-        //         }
-        // });
-
         logger.info("Starting...");
-        stringStream.sinkTo(sink);
+        result.sinkTo(sink);
         logger.info("Stopping...");
 
         env.execute("Kafka to Kafka Flink Job");

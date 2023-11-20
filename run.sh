@@ -8,6 +8,17 @@ source config.env
 # Note: Kafka broker from host is accessible at broker:9092
 # whereas on internal network it is accessible at broker:29092
 #######################
+
+# docker exec $KAFKA_BROKER_HOST \
+#        kafka-topics --bootstrap-server $KAFKA_BROKER_HOST:9092 \
+#        --delete \
+#        --topic $KAFKA_SOURCE_TOPIC
+
+# docker exec $KAFKA_BROKER_HOST \
+#        kafka-topics --bootstrap-server $KAFKA_BROKER_HOST:9092 \
+#        --delete \
+#        --topic $KAFKA_SINK_TOPIC
+
 docker exec $KAFKA_BROKER_HOST \
        kafka-topics --bootstrap-server $KAFKA_BROKER_HOST:9092 \
        --create \

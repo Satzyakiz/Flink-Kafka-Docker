@@ -32,9 +32,9 @@ def stream_from_file(filename: str,
 
     file_record_count = 0
     for _, row in df.iterrows():
-        data = row.to_json()
-        print("Data - ", data)
-        future = producer.send(kafka_topic, data)
+        row_str = ','.join(str(value) for value in row)
+        print("Data - ", row_str)
+        future = producer.send(kafka_topic, row_str)
         result = future.get(timeout=60)
         file_record_count += 1
         

@@ -10,8 +10,7 @@ consumer = KafkaConsumer(kafka_topic,
                          client_id='c1',
                          bootstrap_servers=[kafka_server],
                          group_id=None,
-                         api_version=(0, 10, 1),
-                         value_deserializer=lambda m: json.loads(m.decode('utf-8')))
+                         api_version=(0, 10, 1))
 
 print('Listening for topic ' + str(kafka_topic))
 recv_count = 0

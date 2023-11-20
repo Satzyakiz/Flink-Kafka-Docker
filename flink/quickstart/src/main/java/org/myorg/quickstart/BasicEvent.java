@@ -30,16 +30,26 @@ public class BasicEvent {
     private String nodeId;
     private String subsystem;
     private String parameter;
+    private String temperature;
     private Integer valueRaw;
     private Double valueHrf;
-    private String data;
 
     public static BasicEvent fromString(String data) {
-        return new BasicEvent("timestamp", "node_id", "subsystem", "parameter", 425, 12.33, data);
+        data = data.replaceAll("^\"|\"$", "");
+        String[] parts = data.split(",");
+        Integer valueRaw = Integer.parseInt(parts[5]);
+        Double valueHrf = Double.parseDouble(parts[6]);
+        return new BasicEvent(parts[0], parts[1], parts[2], parts[3], parts[4], valueRaw, valueHrf);
     }
 
     @Override
     public String toString() {
-        return String.format("timestamp: %s, node_id: %s", timestamp, nodeId);
+        return timestamp + "," +
+               nodeId + "," +
+               subsystem + "," +
+               parameter + "," +
+               temperature + "," +
+               valueRaw + "," +
+               valueHrf;
     }
 }
