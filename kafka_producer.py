@@ -3,6 +3,7 @@ import json
 import glob
 import gzip
 import csv
+import pandas as pd
 
 from kafka import KafkaProducer
 
@@ -27,35 +28,21 @@ def stream_from_file(filename: str,
                      format_csv: bool = False,
                      compressed_json: bool = False) -> None:
     print("Starting stream function")
-    file_record_count = 0
-    fin = None
-    if format_csv:
-        fin = open(filename, 'r', encoding='UTF8')
-        data_reader = csv.reader(fin)
-    elif compressed_json:
-        fin = gzip.open(filename, 'r')
-        data_reader = json.loads(fin.read().decode('utf-8'))
-    else:
-        raise Exception('Unsupported input format')
-    
+    df = pd.read_csv(filename, header=0)
 
-        
-    for data in data_reader:
+    file_record_count = 0
+    for _, row in df.iterrows():
+        data = row.to_json()
         print("Data - ", data)
         future = producer.send(kafka_topic, data)
         result = future.get(timeout=60)
         file_record_count += 1
-    #     pass
-    # pass
+        
     print('Records count: ' + str(file_record_count) + ' streamed from: ' + filename)
     producer.flush()
 
     global total_records_count
     total_records_count += file_record_count
-    
-    if fin: fin.close()
-    
-    pass
 
 ############################################
 # Stream data from csv

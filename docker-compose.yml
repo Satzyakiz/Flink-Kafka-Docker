@@ -58,11 +58,13 @@ services:
       - st-cep-network
     ports:
       - "8081:8081"
-    command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: st-cep-flink-jobmanager
+    volumes:
+      - ./spatial-flink/flink:/code/flink
+    command: bash /code/flink/flink-dist/target/flink-1.18-SNAPSHOT-bin/flink-1.18-SNAPSHOT/bin/jobmanager.sh start
         
 
   flink-taskmanager:
@@ -71,13 +73,15 @@ services:
       - st-cep-network
     depends_on:
       - flink-jobmanager
-    command: taskmanager
     # scale: 1
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: st-cep-flink-jobmanager
         taskmanager.numberOfTaskSlots: 2
+    volumes:
+      - ./spatial-flink/flink:/code/flink
+    command: bash /code/flink/flink-dist/target/flink-1.18-SNAPSHOT-bin/flink-1.18-SNAPSHOT/bin/taskmanager.sh start
 
   ##################################################################################################
   # Java based maven development environment
@@ -115,7 +119,6 @@ services:
     container_name: data-cep-processor
     networks:
       - st-cep-network
-    # command: java -jar /code/flink-playground/target/flink-playground-0.1.jar
     command: java -jar /code/quickstart/target/quickstart-0.1.jar
     tty: true
     depends_on:
@@ -127,7 +130,7 @@ services:
       KAFKA_SOURCE_TOPIC: ${KAFKA_SOURCE_TOPIC}
       KAFKA_SINK_TOPIC: ${KAFKA_SINK_TOPIC}
     volumes:
-      - ./flink/flink-playground:/code/flink
+      - ./flink/quickstart:/code/flink
 
   ##################################################################################################
   # Consumer

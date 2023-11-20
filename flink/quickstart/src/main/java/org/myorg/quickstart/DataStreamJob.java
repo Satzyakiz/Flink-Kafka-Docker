@@ -31,8 +31,18 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.slf4j.*;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.cep.CEP;
+import org.apache.flink.cep.pattern.Pattern;
+import org.apache.flink.cep.pattern.conditions.SimpleCondition;
+import org.apache.flink.cep.PatternStream;
+import org.apache.flink.cep.functions.PatternProcessFunction;
+import org.apache.flink.util.Collector;
+import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
 
 import java.util.Properties;
+import java.util.List;
+import java.util.Map;
+import java.io.*;
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -82,8 +92,40 @@ public class DataStreamJob {
                 .build();
         logger.info("Flink connected to consumer");
 
+        DataStream<String> stringStream = stream.map(data -> BasicEvent.fromString(data))
+        .map(data -> {
+                logger.info("BRRRRAAAATTTTT");
+                return data.getData();
+        });
+
+        // Pattern<BasicEvent, ?> pattern = Pattern.<BasicEvent>begin("start")
+        // .where(new SimpleCondition<BasicEvent>() {
+        //     @Override
+        //     public boolean filter(BasicEvent event) {
+        //         logger.info("Trying to convert data");
+        //         return event.getValue_raw() > 420;
+        //     }
+        // });
+
+        // PatternStream<BasicEvent> patternStream = CEP.pattern(eventStream, pattern);
+
+        // DataStream<String> result = patternStream.process(
+        // new PatternProcessFunction<BasicEvent, String>() {
+        //         @Override
+        //         public void processMatch(Map<String, List<BasicEvent>> pattern,
+        //                                 Context ctx,
+        //                                 Collector<String> out) throws Exception {
+        //                 logger.info("Trying to convert data");
+        //                 List<BasicEvent> startEvents = pattern.get("start");
+        //                 for (BasicEvent event : startEvents) {
+        //                         logger.info("Inside event");
+        //                         out.collect("event.toString()");
+        //                 }
+        //         }
+        // });
+
         logger.info("Starting...");
-        stream.sinkTo(sink);
+        stringStream.sinkTo(sink);
         logger.info("Stopping...");
 
         env.execute("Kafka to Kafka Flink Job");
