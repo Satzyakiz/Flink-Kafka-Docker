@@ -68,7 +68,7 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-cep</artifactId>
-			<version>${flink.version}</version>
+			<version>1.18-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
@@ -168,6 +168,29 @@ under the License.
 								</transformer>
 							</transformers>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.1.1</version>
+				<configuration>
+					<groupId>org.apache.flink</groupId>
+					<artifactId>flink-cep</artifactId>
+					<version>1.18-SNAPSHOT</version>
+					<packaging>jar</packaging>
+					<file>${basedir}/dependencies/flink-cep-1.18-SNAPSHOT.jar</file>
+					<generatePom>false</generatePom>
+					<pomFile>${basedir}/dependencies/pom.xml</pomFile>
+				</configuration>
+				<executions>
+					<execution>
+						<id>install-jar-lib</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<phase>validate</phase>
 					</execution>
 				</executions>
 			</plugin>
