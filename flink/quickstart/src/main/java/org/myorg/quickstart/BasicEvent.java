@@ -18,14 +18,16 @@
 
 package org.myorg.quickstart;
 
+import org.apache.flink.cep.pattern.spatial.GeometryEvent;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.locationtech.jts.geom.Geometry;
+
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class BasicEvent {
+public class BasicEvent extends GeometryEvent {
     private String timestamp;
     private String nodeId;
     private String subsystem;
@@ -33,6 +35,49 @@ public class BasicEvent {
     private String temperature;
     private Integer valueRaw;
     private Double valueHrf;
+
+    public BasicEvent() {
+        super(); // Call the superclass constructor
+    }
+
+    public BasicEvent(
+        String timestamp,
+        String nodeId,
+        String subsystem,
+        String parameter,
+        String temperature,
+        Integer valueRaw,
+        Double valueHrf,
+        Geometry geometry
+    ) {
+        super(geometry); // Call the superclass constructor
+        this.timestamp = timestamp;
+        this.nodeId = nodeId;
+        this.subsystem = subsystem;
+        this.parameter = parameter;
+        this.temperature = temperature;
+        this.valueRaw = valueRaw;
+        this.valueHrf = valueHrf;
+    }
+
+    public BasicEvent(
+        String timestamp,
+        String nodeId,
+        String subsystem,
+        String parameter,
+        String temperature,
+        Integer valueRaw,
+        Double valueHrf
+    ) {
+        super(); // Call the superclass constructor
+        this.timestamp = timestamp;
+        this.nodeId = nodeId;
+        this.subsystem = subsystem;
+        this.parameter = parameter;
+        this.temperature = temperature;
+        this.valueRaw = valueRaw;
+        this.valueHrf = valueHrf;
+    }
 
     public static BasicEvent fromString(String data) {
         data = data.replaceAll("^\"|\"$", "");
