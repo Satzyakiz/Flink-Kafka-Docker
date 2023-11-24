@@ -47,7 +47,7 @@ def stream_from_file(filename: str,
 ############################################
 # Stream data from csv
 ############################################
-csv_filename = data_dir + 'smallerDataset.csv'
+csv_filename = data_dir + 'nodes.csv'
 print("File to be parsed  - " + csv_filename)
 stream_from_file(csv_filename, format_csv=True)
 

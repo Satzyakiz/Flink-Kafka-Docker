@@ -105,7 +105,7 @@ services:
       KAFKA_SERVER: ${KAFKA_SERVER:-kafka-broker:29092}
       KAFKA_TOPIC: ${KAFKA_SOURCE_TOPIC}
     volumes:
-      - ${HOST_DATA_DIR}/smallerDataset.csv:/data/smallerDataset.csv:ro
+      - ${HOST_DATA_DIR}/nodes.csv:/data/nodes.csv:ro
       - ./kafka_producer.py:/code/kafka_producer.py
 
 

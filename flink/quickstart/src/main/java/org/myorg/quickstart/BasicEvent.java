@@ -18,83 +18,92 @@
 
 package org.myorg.quickstart;
 
-import org.apache.flink.cep.pattern.spatial.GeometryEvent;
-import java.util.Optional;
-import lombok.AllArgsConstructor;
+import org.apache.flink.cep.pattern.spatial.CircleEvent;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.locationtech.jts.geom.Geometry;
 
 @Data
-public class BasicEvent extends GeometryEvent {
-    private String timestamp;
+public class BasicEvent extends CircleEvent {
     private String nodeId;
-    private String subsystem;
-    private String parameter;
-    private String temperature;
-    private Integer valueRaw;
-    private Double valueHrf;
+    private String projectId;
+    private String vsn;
+    private String address;
+    private Double latitude;
+    private Double longitude;
+    private String description;
+    private String startTimestamp;
+    private String endTimestamp;
 
     public BasicEvent() {
-        super(); // Call the superclass constructor
+        super();
     }
 
     public BasicEvent(
-        String timestamp,
         String nodeId,
-        String subsystem,
-        String parameter,
-        String temperature,
-        Integer valueRaw,
-        Double valueHrf,
-        Geometry geometry
+        String projectId,
+        String vsn,
+        String address,
+        Double latitude,
+        Double longitude,
+        String description,
+        String startTimestamp,
+        String endTimestamp,
+        Double centreX,
+        Double centreY,
+        Double radius
     ) {
-        super(geometry); // Call the superclass constructor
-        this.timestamp = timestamp;
+        super(centreX, centreY, radius);
         this.nodeId = nodeId;
-        this.subsystem = subsystem;
-        this.parameter = parameter;
-        this.temperature = temperature;
-        this.valueRaw = valueRaw;
-        this.valueHrf = valueHrf;
+        this.projectId = projectId;
+        this.vsn = vsn;
+        this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.description = description;
+        this.startTimestamp = startTimestamp;
+        this.endTimestamp = endTimestamp;
     }
 
     public BasicEvent(
-        String timestamp,
         String nodeId,
-        String subsystem,
-        String parameter,
-        String temperature,
-        Integer valueRaw,
-        Double valueHrf
+        String projectId,
+        String vsn,
+        String address,
+        Double latitude,
+        Double longitude,
+        String description,
+        String startTimestamp,
+        String endTimestamp
     ) {
-        super(); // Call the superclass constructor
-        this.timestamp = timestamp;
+        super();
         this.nodeId = nodeId;
-        this.subsystem = subsystem;
-        this.parameter = parameter;
-        this.temperature = temperature;
-        this.valueRaw = valueRaw;
-        this.valueHrf = valueHrf;
+        this.projectId = projectId;
+        this.vsn = vsn;
+        this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.description = description;
+        this.startTimestamp = startTimestamp;
+        this.endTimestamp = endTimestamp;
     }
 
     public static BasicEvent fromString(String data) {
         data = data.replaceAll("^\"|\"$", "");
         String[] parts = data.split(",");
-        Integer valueRaw = Integer.parseInt(parts[5]);
-        Double valueHrf = Double.parseDouble(parts[6]);
-        return new BasicEvent(parts[0], parts[1], parts[2], parts[3], parts[4], valueRaw, valueHrf);
+        Double latitude = Double.parseDouble(parts[4]);
+        Double longitude = Double.parseDouble(parts[5]);
+        return new BasicEvent(parts[0], parts[1], parts[2], parts[3], latitude, longitude, parts[6], parts[7], parts[8], latitude, longitude, 2000.0);
     }
 
     @Override
     public String toString() {
-        return timestamp + "," +
-               nodeId + "," +
-               subsystem + "," +
-               parameter + "," +
-               temperature + "," +
-               valueRaw + "," +
-               valueHrf;
+        return  nodeId + "," +
+                projectId + "," +
+                vsn + "," +
+                address + "," +
+                latitude + "," +
+                longitude + "," +
+                description + "," +
+                startTimestamp + "," +
+                endTimestamp;
     }
 }

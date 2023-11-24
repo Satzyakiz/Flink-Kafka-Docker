@@ -96,11 +96,13 @@ public class DataStreamJob {
 
         Pattern<BasicEvent, ?> pattern = Pattern.<BasicEvent>begin("start")
         .where(SimpleCondition.of(event -> {
-                return event.getValueRaw() > 440;
+                Double obj = new Double(41.8);
+                return event.getLatitude().compareTo(obj) > 0;
             }))
         .followedBy("end")
         .where(SimpleCondition.of(event -> {
-                return event.getValueRaw() < 450;
+                Double obj = new Double(42);
+                return  event.getLatitude().compareTo(obj) < 0;
             }));
 
         PatternStream<BasicEvent> patternStream = CEP.pattern(eventStream, pattern).inProcessingTime();
