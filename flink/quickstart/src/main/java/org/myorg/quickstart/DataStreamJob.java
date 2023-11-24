@@ -34,6 +34,8 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
+import org.apache.flink.cep.pattern.conditions.spatial.IntersectCondition;
+import org.apache.flink.cep.pattern.conditions.spatial.IntersectType;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.functions.PatternProcessFunction;
 import org.apache.flink.util.Collector;
@@ -96,14 +98,11 @@ public class DataStreamJob {
 
         Pattern<BasicEvent, ?> pattern = Pattern.<BasicEvent>begin("start")
         .where(SimpleCondition.of(event -> {
-                Double obj = new Double(41.8);
+                Double obj = new Double(41);
                 return event.getLatitude().compareTo(obj) > 0;
             }))
         .followedBy("end")
-        .where(SimpleCondition.of(event -> {
-                Double obj = new Double(42);
-                return  event.getLatitude().compareTo(obj) < 0;
-            }));
+        .where(new IntersectCondition<BasicEvent>("start", IntersectType.INTERSECT_ALL));
 
         PatternStream<BasicEvent> patternStream = CEP.pattern(eventStream, pattern).inProcessingTime();
 
@@ -113,9 +112,15 @@ public class DataStreamJob {
                 public void processMatch(Map<String, List<BasicEvent>> pattern,
                                         Context ctx,
                                         Collector<String> out) throws Exception {
-                        List<BasicEvent> events = pattern.get("end");
+                        logger.info("Intersecting set");
+                        List<BasicEvent> events = pattern.get("start");
                         for (BasicEvent event : events) {
-                                logger.info("Adding event " + event.toString());
+                                logger.info("Start event " + event.toString());
+                                out.collect(event.toString());
+                        }
+                        events = pattern.get("end");
+                        for (BasicEvent event : events) {
+                                logger.info("End event " + event.toString());
                                 out.collect(event.toString());
                         }
                 }
