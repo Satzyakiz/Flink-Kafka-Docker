@@ -29,13 +29,14 @@ under the License.
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<flink.version>1.17.0</flink.version>
+		<flink.version>1.18.0</flink.version>
 		<target.java.version>1.8</target.java.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<maven.compiler.source>${target.java.version}</maven.compiler.source>
 		<maven.compiler.target>${target.java.version}</maven.compiler.target>
 		<log4j.version>2.17.1</log4j.version>
 	</properties>
+
 
 	<repositories>
 		<repository>
@@ -64,21 +65,13 @@ under the License.
 			<artifactId>flink-clients</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
-		<!-- Apache Flink CEP (Complex Event Processing) -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-cep</artifactId>
-			<version>1.18-SNAPSHOT</version>
-		</dependency>
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
-
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-kafka</artifactId>
-			<version>${flink.version}</version>
+			<version>3.0.1-1.18</version>
 		</dependency>
-		
 
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
@@ -104,7 +97,6 @@ under the License.
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.30</version>
-			<scope>provided</scope>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.esotericsoftware.kryo/kryo -->
 		<dependency>
@@ -112,10 +104,40 @@ under the License.
 			<artifactId>kryo</artifactId>
 			<version>2.24.0</version>
 		</dependency>
+
+		<!-- Apache Flink CEP (Complex Event Processing) -->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-cep</artifactId>
+			<version>1.18-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>install-jar-lib1</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<phase>validate</phase>
+						<configuration>
+							<groupId>org.apache.flink</groupId>
+							<artifactId>flink-cep</artifactId>
+							<version>1.18-SNAPSHOT</version>
+							<packaging>jar</packaging>
+							<file>${basedir}/dependencies/flink-cep-1.18-SNAPSHOT.jar</file>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<!-- Java Compiler -->
 			<plugin>
@@ -171,74 +193,6 @@ under the License.
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<version>3.1.1</version>
-				<configuration>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-cep</artifactId>
-					<version>1.18-SNAPSHOT</version>
-					<packaging>jar</packaging>
-					<file>${basedir}/dependencies/flink-cep-1.18-SNAPSHOT.jar</file>
-					<generatePom>false</generatePom>
-					<pomFile>${basedir}/dependencies/pom.xml</pomFile>
-				</configuration>
-				<executions>
-					<execution>
-						<id>install-jar-lib</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<phase>validate</phase>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
-
-		<pluginManagement>
-			<plugins>
-
-				<!-- This improves the out-of-the-box experience in Eclipse by resolving some warnings. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-shade-plugin</artifactId>
-										<versionRange>[3.1.1,)</versionRange>
-										<goals>
-											<goal>shade</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore/>
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-compiler-plugin</artifactId>
-										<versionRange>[3.1,)</versionRange>
-										<goals>
-											<goal>testCompile</goal>
-											<goal>compile</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore/>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 </project>
