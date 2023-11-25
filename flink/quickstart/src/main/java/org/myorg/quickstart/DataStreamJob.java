@@ -33,9 +33,11 @@ import org.slf4j.*;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.pattern.Pattern;
+import org.apache.flink.cep.pattern.spatial.GeometryEvent;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
-import org.apache.flink.cep.pattern.conditions.spatial.IntersectCondition;
 import org.apache.flink.cep.pattern.conditions.spatial.IntersectType;
+import org.apache.flink.cep.pattern.conditions.spatial.SingleIntersectCondition;
+import org.apache.flink.cep.pattern.conditions.spatial.MultiIntersectCondition;
 import org.apache.flink.cep.PatternStream;
 import org.apache.flink.cep.functions.PatternProcessFunction;
 import org.apache.flink.util.Collector;
@@ -94,37 +96,57 @@ public class DataStreamJob {
                 .build();
         logger.info("Flink connected to consumer");
 
-        DataStream<BasicEvent> eventStream = stream.map(data -> BasicEvent.fromString(data));
-
-        Pattern<BasicEvent, ?> pattern = Pattern.<BasicEvent>begin("start")
+        String locationString = "001e06113a24,AoT_Chicago,07A,UChicago Oriental Museum Chicago IL,41.788979,-87.597995,AoT Chicago (S) [C] {UChicago},2018/04/12 00:00:00,nan";
+        BasicCircleEvent location = BasicCircleEvent.fromString(locationString);
+        DataStream<BasicPointEvent> eventStream = stream.map(data -> BasicPointEvent.fromString(data));
+        Pattern<BasicPointEvent, ?> pattern = Pattern.<BasicPointEvent>begin("start")
         .where(SimpleCondition.of(event -> {
-                Double obj = new Double(41);
-                return event.getLatitude().compareTo(obj) > 0;
+                return event instanceof BasicPointEvent;
             }))
-        .followedBy("end")
-        .where(new IntersectCondition<BasicEvent>("start", IntersectType.INTERSECT_ALL));
+        .next("within")
+        .where(new SingleIntersectCondition<BasicPointEvent>(location));
 
-        PatternStream<BasicEvent> patternStream = CEP.pattern(eventStream, pattern).inProcessingTime();
+        PatternStream<BasicPointEvent> patternStream = CEP.pattern(eventStream, pattern).inProcessingTime();
 
         DataStream<String> result = patternStream.process(
-        new PatternProcessFunction<BasicEvent, String>() {
+        new PatternProcessFunction<BasicPointEvent, String>() {
                 @Override
-                public void processMatch(Map<String, List<BasicEvent>> pattern,
+                public void processMatch(Map<String, List<BasicPointEvent>> pattern,
                                         Context ctx,
                                         Collector<String> out) throws Exception {
                         logger.info("Intersecting set");
-                        List<BasicEvent> events = pattern.get("start");
-                        for (BasicEvent event : events) {
-                                logger.info("Start event " + event.toString());
-                                out.collect(event.toString());
-                        }
-                        events = pattern.get("end");
-                        for (BasicEvent event : events) {
-                                logger.info("End event " + event.toString());
+                        List<BasicPointEvent> events = pattern.get("within");
+                        for (BasicPointEvent event : events) {
+                                logger.info("Inside events " + event.toString());
                                 out.collect(event.toString());
                         }
                 }
         });
+        // DataStream<BasicCircleEvent> eventStream = stream.map(data -> BasicCircleEvent.fromString(data));
+        // Pattern<BasicCircleEvent, ?> pattern = Pattern.<BasicCircleEvent>begin("start")
+        // .where(SimpleCondition.of(event -> {
+        //         return event instanceof BasicCircleEvent;
+        //     }))
+        // .next("within")
+        // .where(new MultiIntersectCondition<BasicCircleEvent>("start", IntersectType.INTERSECT_ALL));
+        // // .where(new MultiIntersectCondition<BasicCircleEvent>("start", IntersectType.INTERSECT_ANY_N, 1));
+
+        // PatternStream<BasicCircleEvent> patternStream = CEP.pattern(eventStream, pattern).inProcessingTime();
+
+        // DataStream<String> result = patternStream.process(
+        // new PatternProcessFunction<BasicCircleEvent, String>() {
+        //         @Override
+        //         public void processMatch(Map<String, List<BasicCircleEvent>> pattern,
+        //                                 Context ctx,
+        //                                 Collector<String> out) throws Exception {
+        //                 logger.info("Intersecting set");
+        //                 List<BasicCircleEvent> events = pattern.get("within");
+        //                 for (BasicCircleEvent event : events) {
+        //                         logger.info("Inside events " + event.toString());
+        //                         out.collect(event.toString());
+        //                 }
+        //         }
+        // });
 
         logger.info("Starting...");
         result.sinkTo(sink);

@@ -18,11 +18,12 @@
 
 package org.myorg.quickstart;
 
-import org.apache.flink.cep.pattern.spatial.CircleEvent;
+import org.apache.flink.cep.pattern.spatial.EllipseEvent;
 import lombok.Data;
+import java.io.Serializable;
 
 @Data
-public class BasicEvent extends CircleEvent {
+public class BasicCircleEvent extends EllipseEvent implements Serializable {
     private String nodeId;
     private String projectId;
     private String vsn;
@@ -33,11 +34,11 @@ public class BasicEvent extends CircleEvent {
     private String startTimestamp;
     private String endTimestamp;
 
-    public BasicEvent() {
+    public BasicCircleEvent() {
         super();
     }
 
-    public BasicEvent(
+    public BasicCircleEvent(
         String nodeId,
         String projectId,
         String vsn,
@@ -49,9 +50,10 @@ public class BasicEvent extends CircleEvent {
         String endTimestamp,
         Double centreX,
         Double centreY,
-        Double radius
+        Double height,
+        Double width
     ) {
-        super(centreX, centreY, radius);
+        super(centreX, centreY, height, width);
         this.nodeId = nodeId;
         this.projectId = projectId;
         this.vsn = vsn;
@@ -63,7 +65,7 @@ public class BasicEvent extends CircleEvent {
         this.endTimestamp = endTimestamp;
     }
 
-    public BasicEvent(
+    public BasicCircleEvent(
         String nodeId,
         String projectId,
         String vsn,
@@ -86,12 +88,15 @@ public class BasicEvent extends CircleEvent {
         this.endTimestamp = endTimestamp;
     }
 
-    public static BasicEvent fromString(String data) {
+    public static BasicCircleEvent fromString(String data) {
         data = data.replaceAll("^\"|\"$", "");
         String[] parts = data.split(",");
         Double latitude = Double.parseDouble(parts[4]);
         Double longitude = Double.parseDouble(parts[5]);
-        return new BasicEvent(parts[0], parts[1], parts[2], parts[3], latitude, longitude, parts[6], parts[7], parts[8], latitude, longitude, 2000.0);
+        Double distanceInMeter = 1000.0 * 20;
+        Double height = distanceInMeter / 111320d;
+        Double width = distanceInMeter / (40075000 * Math.cos(Math.toRadians(latitude)) / 360);
+        return new BasicCircleEvent(parts[0], parts[1], parts[2], parts[3], latitude, longitude, parts[6], parts[7], parts[8], latitude, longitude, height, width);
     }
 
     @Override
